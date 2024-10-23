@@ -311,3 +311,147 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
 // Initialize the visualization for both datasets
 processEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "Clip", 1000);
 processEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2m", 1000);
+
+
+//---------------------------------------------------------------------------------------------------
+// Assign Colors to Annotations Groups
+function assignColorsToAnnotations(annotationGroups) {
+  var n = annotationGroups.length;
+  var colorPalette = generateDistinctColors(n);
+  var annotationToColor = {};
+
+  annotationGroups.forEach(function(annotationGroup, index) {
+    // Each annotation group gets a unique color
+    annotationToColor[annotationGroup] = colorPalette[index];
+  });
+
+  return annotationToColor;  // Return the mapping of annotation groups to colors
+}
+
+// Process and plot annotations and their points
+function processAndPlotAnnotations(data, numAnnotations, elementId) {
+  var points = [];
+  var annotationGroups = Object.keys(data);  // Get all annotation groups
+  var annotationColors = assignColorsToAnnotations(annotationGroups);  // Assign unique colors to each group
+  var counter = 0;
+
+  // Loop through each sequence in the data
+  annotationGroups.forEach(function(seqKey) {
+    if (counter >= numAnnotations) return; // Stop processing after reaching numAnnotations
+
+    var sequence = data[seqKey];
+    var annotations = sequence.annotations;
+
+    // Loop through each annotation in the sequence and collect '_embedding_2d' points
+    annotations.forEach(function(annotation) {
+      if (annotation.seg_id.startsWith('humanml3d_')) {
+        var embeddingKey = elementId.replace("Group", "").toLowerCase() + '_embedding_2d';
+        var embedding = annotation[embeddingKey];
+
+        if (embedding) {
+          var point = {
+            x: embedding[0],
+            y: embedding[1],
+            humanml3dText: annotation.text,
+            annotationGroup: seqKey // Track the group (sequence)
+          };
+          points.push(point);
+        }
+      }
+    });
+
+    counter++;
+  });
+
+  // Create the scales and plot the data
+  var tooltip = createTooltip();  // Assuming createTooltip is defined
+  createSvgAndPlot(points, elementId, tooltip, annotationColors);
+}
+
+// Plot the points with assigned colors and tooltips
+function createSvgAndPlot(points, elementId, tooltip, annotationColors) {
+  var width = 800, height = 600;
+  var margin = { top: 20, right: 20, bottom: 60, left: 70 };
+
+  // Calculate extents for both axes
+  var xExtent = d3.extent(points, function(d) { return d.x; });
+  var yExtent = d3.extent(points, function(d) { return d.y; });
+
+  // Determine the maximum absolute value to ensure equal scaling on both axes
+  var maxExtent = Math.max(Math.abs(xExtent[0]), Math.abs(xExtent[1]), Math.abs(yExtent[0]), Math.abs(yExtent[1]));
+
+  // Create the same scale for both x and y to ensure equal unit intervals
+  var xScale = d3.scaleLinear()
+                 .domain([-maxExtent, maxExtent])
+                 .range([margin.left, width - margin.right]);
+
+  var yScale = d3.scaleLinear()
+                 .domain([-maxExtent, maxExtent])
+                 .range([height - margin.bottom, margin.top]);
+
+  // Clear the previous SVG if exists
+  d3.select(`#${elementId}`).select("svg").remove();
+
+  var svg = d3.select(`#${elementId}`).append("svg")
+              .attr("width", width)
+              .attr("height", height);
+
+  // Create x and y axes
+  var xAxis = d3.axisBottom(xScale);
+  var yAxis = d3.axisLeft(yScale);
+
+  // Append the x-axis at y = 0 (cross the origin)
+  svg.append("g")
+     .attr("transform", `translate(0,${yScale(0)})`)  // Position x-axis at y = 0
+     .call(xAxis);
+
+  // Append the y-axis at x = 0 (cross the origin)
+  svg.append("g")
+     .attr("transform", `translate(${xScale(0)},0)`)  // Position y-axis at x = 0
+     .call(yAxis);
+
+  // Plot the points with color assignment and tooltip logic
+  svg.selectAll("circle")
+     .data(points)
+     .enter()
+     .append("circle")
+     .attr("cx", function(d) { return xScale(d.x); })
+     .attr("cy", function(d) { return yScale(d.y); })
+     .attr("r", 5)
+     .attr("fill", function(d) {
+        return annotationColors[d.annotationGroup];  // Assign color based on the group
+     })
+     .on("mouseover", function(event, d) {
+        tooltip.style("display", "block");  // Show tooltip on hover
+     })
+     .on("mousemove", function(event, d) {
+        // Display humanml3dText in the tooltip
+        tooltip.html(
+          `<strong>${elementId.replace("Group", "").toLowerCase()} Embedding 2D:</strong> (${d.x.toFixed(2)}, ${d.y.toFixed(2)})<br>` +
+          `<strong>HumanML3D Text:</strong> ${d.humanml3dText}`
+        )
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 10) + "px");
+     })
+     .on("mouseout", function() {
+        tooltip.style("display", "none");  // Hide the tooltip when the mouse leaves
+     });
+}
+
+// Function to handle loading annotations for the dataset
+function processAnnotationsEmbedding(jsonPath, elementId, numAnnotations = 100) {
+  d3.json(jsonPath).then(function(data) {
+    processAndPlotAnnotations(data, numAnnotations, elementId);
+  });
+
+  d3.select(`#loadAnnotations${elementId}`).on("click", function() {
+    numAnnotations = +document.getElementById(`numAnnotations${elementId}`).value;
+    d3.json(jsonPath).then(function(data) {
+      processAndPlotAnnotations(data, numAnnotations, elementId);
+    });
+  });
+}
+
+// Call the function for each dataset
+processAnnotationsEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "ClipGroup", 100);
+processAnnotationsEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2mGroup", 100);

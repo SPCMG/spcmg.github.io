@@ -39,6 +39,28 @@ title: Data Visualization
 <button id="showAllPointsT2m">Show All Points</button>
 <div id="T2m"></div>
 
+<h2>CLIP Embeddings (Group HumanML3D Descriptions with the Same Meaning)</h2>
+<div>
+  <label for="numAnnotationsClipGroup">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsClipGroup" name="numAnnotationsClipGroup" min="1" value="100">
+  <button id="loadAnnotationsClipGroup">Load Partial Data</button>
+</div>
+
+<div id="ClipGroup"></div>
+
+<hr>
+
+<h2>T2M Embeddings (Group HumanML3D Descriptions with the Same Meaning)</h2>
+<div>
+  <label for="numAnnotationsT2mGroup">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsT2mGroup" name="numAnnotationsT2mGroup" min="1" value="100">
+  <button id="loadAnnotationsT2mGroup">Load Partial Data</button>
+</div>
+
+<div id="T2mGroup"></div>
+
+<hr>
+
 <!-- Include D3.js -->
 <script src="https://d3js.org/d3.v6.min.js"></script>
 
