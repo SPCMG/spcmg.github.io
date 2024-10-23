@@ -39,6 +39,8 @@ title: Data Visualization
 <button id="showAllPointsT2m">Show All Points</button>
 <div id="T2m"></div>
 
+<hr>
+
 <h2>CLIP Embeddings (Group HumanML3D Descriptions with the Same Meaning)</h2>
 <div>
   <label for="numAnnotationsClipGroup">Enter the number of annotations to load:</label>
@@ -58,6 +60,28 @@ title: Data Visualization
 </div>
 
 <div id="T2mGroup"></div>
+
+<hr>
+
+<h2>CLIP Embeddings (Original vs. Swapped Actions)</h2>
+<div>
+  <label for="numAnnotationsClipSwapped">Enter the number of pairs to load:</label>
+  <input type="number" id="numAnnotationsClipSwapped" name="numAnnotationsClipSwapped" min="1" value="10">
+  <button id="loadAnnotationsClipSwapped">Load Partial Data</button>
+</div>
+
+<div id="ClipSwapped"></div>
+
+<hr>
+
+<h2>T2M Embeddings (Original vs. Swapped Actions)</h2>
+<div>
+  <label for="numAnnotationsT2mSwapped">Enter the number of pairs to load:</label>
+  <input type="number" id="numAnnotationsT2mSwapped" name="numAnnotationsT2mSwapped" min="1" value="10">
+  <button id="loadAnnotationsT2mSwapped">Load Partial Data</button>
+</div>
+
+<div id="T2mSwapped"></div>
 
 <hr>
 

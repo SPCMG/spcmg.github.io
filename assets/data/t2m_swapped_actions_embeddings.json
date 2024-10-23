@@ -1,0 +1,132 @@
+[
+    {
+        "original_description": "a person squats down then jumps.",
+        "swapped_description": "a person jumps then squats down.",
+        "original_embedding_2d": [
+            0.2831409650274084,
+            1.670207590327885
+        ],
+        "swapped_embedding_2d": [
+            0.4645550499238395,
+            1.3049493977476394
+        ],
+        "euclidean_distance": 0.4078291522755544
+    },
+    {
+        "original_description": "a person is walking and then steps over something.",
+        "swapped_description": "a person steps over something and then walks.",
+        "original_embedding_2d": [
+            -0.15242331130144932,
+            0.12308038026551851
+        ],
+        "swapped_embedding_2d": [
+            -0.03779601269591333,
+            0.5318465520601526
+        ],
+        "euclidean_distance": 0.42453409850004165
+    },
+    {
+        "original_description": "a person does a squat and raises both arms over its head.",
+        "swapped_description": "a person raises both arms over its head and does a squat.",
+        "original_embedding_2d": [
+            -0.30032419820951006,
+            0.1498047865857085
+        ],
+        "swapped_embedding_2d": [
+            -0.012883434488102351,
+            -0.3611040504240321
+        ],
+        "euclidean_distance": 0.586216711108948
+    },
+    {
+        "original_description": "a man waves his hands then stands on his right leg while lifting his left.",
+        "swapped_description": "a man stands on his right leg while lifting his left then waves his hands.",
+        "original_embedding_2d": [
+            -0.8597089845746821,
+            -0.008297536240923891
+        ],
+        "swapped_embedding_2d": [
+            -0.860686585098178,
+            -0.4981147930883299
+        ],
+        "euclidean_distance": 0.4898182324171909
+    },
+    {
+        "original_description": "a person standing raises their arm in a drinking motion and then bends over.",
+        "swapped_description": "a person bends over and then standing raises their arm in a drinking motion.",
+        "original_embedding_2d": [
+            -0.36243559506528733,
+            0.18720083561553566
+        ],
+        "swapped_embedding_2d": [
+            -0.5032329907968127,
+            -0.45324935666111654
+        ],
+        "euclidean_distance": 0.6557441234444885
+    },
+    {
+        "original_description": "a person sways left and shakes their right hip, then sways right and shakes their left hip.",
+        "swapped_description": "a person sways right and shakes their left hip, then sways left and shakes their right hip.",
+        "original_embedding_2d": [
+            -1.8581296729207508,
+            -1.037970304975379
+        ],
+        "swapped_embedding_2d": [
+            -1.8102721905678432,
+            -1.0675555349415453
+        ],
+        "euclidean_distance": 0.05626388228081859
+    },
+    {
+        "original_description": "a person runs and jumps forward.",
+        "swapped_description": "a person jumps and runs forward.",
+        "original_embedding_2d": [
+            0.07186073653508886,
+            1.7727402159121004
+        ],
+        "swapped_embedding_2d": [
+            0.1255746258715216,
+            1.7915184126233983
+        ],
+        "euclidean_distance": 0.05690169223647695
+    },
+    {
+        "original_description": "person is boxing, they throw an upper cut then defend and dodge then they throw a few right jabs.",
+        "swapped_description": "person is boxing, they throw an upper cut then they throw a few right jabs then defend and dodge.",
+        "original_embedding_2d": [
+            1.717445106710084,
+            -1.7718150353878988
+        ],
+        "swapped_embedding_2d": [
+            2.5234606652652185,
+            -0.7436495094012298
+        ],
+        "euclidean_distance": 1.3064399831069122
+    },
+    {
+        "original_description": "a person punches with their right hand before they do a counterclockwise spin.",
+        "swapped_description": "a person does a counterclockwise spin before they punch with their right hand.",
+        "original_embedding_2d": [
+            -0.38075068113052846,
+            -0.4414472457265307
+        ],
+        "swapped_embedding_2d": [
+            -0.7782624177195281,
+            -0.2615070120889416
+        ],
+        "euclidean_distance": 0.4363416876801395
+    },
+    {
+        "original_description": "person walks up and then looks around behind him like someone is watching him.",
+        "swapped_description": "person looks around behind him like someone is watching him and then walks up.",
+        "original_embedding_2d": [
+            1.4427313662923695,
+            -0.7733561562627824
+        ],
+        "swapped_embedding_2d": [
+            1.2881375589430522,
+            -0.113281635939226
+        ],
+        "euclidean_distance": 0.6779362932098641
+    }
+]
