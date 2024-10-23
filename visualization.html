@@ -3,26 +3,44 @@ layout: default
 title: Data Visualization
 ---
 
-<h1>CLIP Embeddings Visualization</h1>
+<h1>Embeddings Visualization</h1>
 
+<!-- Section for the first dataset -->
+<h2>CLIP Embeddings of HumanML3D</h2>
 <div>
-  <label for="numAnnotations">Enter the number of annotations to load:</label>
-  <input type="number" id="numAnnotations" name="numAnnotations" min="1" value="1000">
-  <button id="loadAnnotations">Load Partial Data</button>
+  <label for="numAnnotationsClip">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsClip" name="numAnnotationsClip" min="1" value="1000">
+  <button id="loadAnnotationsClip">Load Partial Data</button>
 </div>
 
-<!-- Tooltip section -->
-<div id="babelDropdown"></div>
-<div id="humanml3dTexts"></div>
+<div id="babelDropdownClip"></div>
+<div id="humanml3dTextsClip"></div>
+<div id="humanml3dDropdownClip"></div>
+<div id="babelTextsClip"></div>
 
-<div id="humanml3dDropdown"></div>
-<div id="babelTexts"></div>
+<button id="showAllPointsClip">Show All Points</button>
+<div id="Clip"></div>
 
-<button id="showAllPoints">Show All Points</button>
-<div id="embedding_viz"></div>
+<hr>
+
+<!-- Section for the second dataset -->
+<h2>T2M Embeddings of HumanML3D</h2>
+<div>
+  <label for="numAnnotationsT2m">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsT2m" name="numAnnotationsT2m" min="1" value="1000">
+  <button id="loadAnnotationsT2m">Load Partial Data</button>
+</div>
+
+<div id="babelDropdownT2m"></div>
+<div id="humanml3dTextsT2m"></div>
+<div id="humanml3dDropdownT2m"></div>
+<div id="babelTextsT2m"></div>
+
+<button id="showAllPointsT2m">Show All Points</button>
+<div id="T2m"></div>
 
 <!-- Include D3.js -->
 <script src="https://d3js.org/d3.v6.min.js"></script>
 
 <!-- Include your JavaScript code -->
-<script src="{{ site.baseurl }}/assets/js/embedding_viz.js"></script>
+<script src="/assets/js/embedding_viz.js"></script>

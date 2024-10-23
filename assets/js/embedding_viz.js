@@ -1,5 +1,5 @@
 // Data Processing with annotation limit
-function processData(data, numAnnotations) {
+function processData(data, numAnnotations, elementId) {
   var points = [];
   var humanml3dTexts = new Set();
   var tempBabelTexts = new Set();
@@ -21,9 +21,12 @@ function processData(data, numAnnotations) {
     annotations.forEach(function(annotation) {
       if (annotation.seg_id.startsWith('humanml3d_') && counter < numAnnotations) {
         humanml3dTexts.add(annotation.text);
+
+        var embeddingKey = elementId + '_embedding_2d';
+        var embedding = annotation[embeddingKey];
         var point = {
-          x: annotation.clip_embedding_2d[0],
-          y: annotation.clip_embedding_2d[1],
+          x: embedding[0],
+          y: embedding[1],
           humanml3d_text: annotation.text,
           labels: babelTextsInSequence.slice() // Copy of babel texts
         };
@@ -40,18 +43,34 @@ function processData(data, numAnnotations) {
   return { points, babelTextList, humanml3dTextList, babelTextToColor };
 }
 
-// Assign colors to text list
+// Generate Distinct Colors Function
+function generateDistinctColors(n) {
+  var colors = [];
+  var saturation = 0.65;
+  var lightness = 0.55;
+
+  for (var i = 0; i < n; i++) {
+    var hue = (i * 137.508) % 360; // Golden angle
+    colors.push(d3.hsl(hue, saturation, lightness).toString());
+  }
+  return colors;
+}
+
+// Assign Colors Function
 function assignColors(textList) {
-  var colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  textList.sort();
+  var n = textList.length;
+  var colorPalette = generateDistinctColors(n);
   var textToColor = {};
+
   textList.forEach(function(text, index) {
-    textToColor[text] = colorScale(index);
+    textToColor[text] = colorPalette[index];
   });
   return textToColor;
 }
 
 // Visualization Setup
-function createSvgAndScales(width, height, margin, points) {
+function createSvgAndScales(width, height, margin, points, elementId) {
   var xExtent = d3.extent(points, function(d) { return d.x; });
   var yExtent = d3.extent(points, function(d) { return d.y; });
   var maxExtent = d3.max([Math.abs(xExtent[0]), Math.abs(xExtent[1]), Math.abs(yExtent[0]), Math.abs(yExtent[1])]);
@@ -66,7 +85,7 @@ function createSvgAndScales(width, height, margin, points) {
                  .domain([-maxExtent * 1.1 * aspectRatio, maxExtent * 1.1 * aspectRatio]) 
                  .range([height - margin.bottom, margin.top]);
 
-  var svg = d3.select("#embedding_viz")
+  var svg = d3.select(`#${elementId}`)
               .append("svg")
               .attr("width", width)
               .attr("height", height);
@@ -105,12 +124,12 @@ function truncateText(text, maxLength) {
 }
 
 // Create Dropdowns
-function createDropdowns(babelTextList, humanml3dTextList) {
+function createDropdowns(babelTextList, humanml3dTextList, elementId) {
   // Max length for the dropdown text
   var maxLength = 100;
 
-  var babelDropdown = d3.select("#babelDropdown").append("select").attr("id", "babelSelect");
-  var humanml3dDropdown = d3.select("#humanml3dDropdown").append("select").attr("id", "humanml3dSelect");
+  var babelDropdown = d3.select(`#babelDropdown${elementId}`).append("select").attr("id", "babelSelect");
+  var humanml3dDropdown = d3.select(`#humanml3dDropdown${elementId}`).append("select").attr("id", "humanml3dSelect");
 
   babelDropdown.append("option").attr("value", "").text("Select a BABEL text");
   humanml3dDropdown.append("option").attr("value", "").text("Select a HumanML3D text");
@@ -135,14 +154,17 @@ function createDropdowns(babelTextList, humanml3dTextList) {
 }
 
 // Setup Dropdown Handlers
-function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, humanml3dDropdown) {
+function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, humanml3dDropdown, elementId) {
   babelDropdown.on("change", function() {
     var selectedBabelText = this.value;
-    d3.select("#humanml3dTexts").text("");  // Clear previous HumanML3D texts
-    d3.select("#babelTexts").text("");      // Clear previous BABEL texts
+    d3.select(`#humanml3dTexts${elementId}`).text("");  // Clear previous HumanML3D texts
+    d3.select(`#babelTexts${elementId}`).text("");      // Clear previous BABEL texts
 
     if (selectedBabelText === "") {
-      svg.selectAll("circle").attr("fill", "grey");
+      svg.selectAll("circle")
+         .attr("fill", function(d) {
+           return babelTextToColor[d.labels[0]] || "grey";
+         });
       return;
     }
 
@@ -154,7 +176,7 @@ function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, hum
 
     correspondingHumanml3dTexts = Array.from(new Set(correspondingHumanml3dTexts)); // Remove duplicates
 
-    d3.select("#humanml3dTexts").html("Corresponding HumanML3D Texts:<br>" +
+    d3.select(`#humanml3dTexts${elementId}`).html("Corresponding HumanML3D Texts:<br>" +
       correspondingHumanml3dTexts.map(function(d) {
         return "<div>" + d + "</div>";
       }).join(""));
@@ -171,11 +193,14 @@ function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, hum
 
   humanml3dDropdown.on("change", function() {
     var selectedHumanml3dText = this.value;
-    d3.select("#babelTexts").text("");
-    d3.select("#humanml3dTexts").text("");
+    d3.select(`#babelTexts${elementId}`).text("");
+    d3.select(`#humanml3dTexts${elementId}`).text("");
 
     if (selectedHumanml3dText === "") {
-      svg.selectAll("circle").attr("fill", "grey");
+      svg.selectAll("circle")
+         .attr("fill", function(d) {
+           return babelTextToColor[d.labels[0]] || "grey";
+         });
       return;
     }
 
@@ -187,7 +212,7 @@ function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, hum
 
     correspondingBabelTexts = Array.from(new Set([].concat.apply([], correspondingBabelTexts))); // Flatten and remove duplicates
 
-    d3.select("#babelTexts").html("Corresponding BABEL Texts:<br>" +
+    d3.select(`#babelTexts${elementId}`).html("Corresponding BABEL Texts:<br>" +
       correspondingBabelTexts.map(function(d) {
       return "<div>" + d + "</div>";
     }).join(""));
@@ -204,7 +229,7 @@ function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, hum
 }
 
 // Drawing Points
-function drawPoints(svg, points, xScale, yScale, tooltip) {
+function drawPoints(svg, points, xScale, yScale, tooltip, elementId) {
   svg.selectAll("circle")
      .data(points)
      .enter()
@@ -217,7 +242,7 @@ function drawPoints(svg, points, xScale, yScale, tooltip) {
         tooltip.style("display", "block");
 
         var correspondingBabelTexts = Array.from(new Set(d.labels)).join(", ");
-        var content = `<strong>clip_embedding_2d:</strong> (${d.x.toFixed(2)}, ${d.y.toFixed(2)})<br>` +
+        var content = `<strong>${elementId} embedding 2d:</strong> (${d.x.toFixed(2)}, ${d.y.toFixed(2)})<br>` +
                       `<strong>HumanML3D Text:</strong> ${d.humanml3d_text}<br>` +
                       `<strong>Corresponding BABEL Texts:</strong> ${correspondingBabelTexts}`;
 
@@ -235,49 +260,54 @@ function drawPoints(svg, points, xScale, yScale, tooltip) {
 }
 
 // Function to reset all points and clear text
-function showAllPoints(svg, points, babelTextToColor) {
+function showAllPoints(svg, babelTextToColor, elementId) {
   svg.selectAll("circle")
      .attr("fill", function(d) {
-       return babelTextToColor[d.labels[0]] || "gainsboro"; // Use the first label's color or default to grey
+       return babelTextToColor[d.labels[0]] || "transparent";  // "gainsboro"; // Use the first label's color or default to grey
      });
 
-  d3.select("#babelTexts").text("");
-  d3.select("#humanml3dTexts").text("");
+  d3.select(`#babelTexts${elementId}`).text("");
+  d3.select(`#humanml3dTexts${elementId}`).text("");
 }
 
-// Putting It All Together
-d3.json("/assets/data/clean_babel_humanml3d_kitml_embedding.json").then(function(data) {
-  var numAnnotations = 1000;  // Default number of annotations
+function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
+  var points;
+  d3.json(jsonPath).then(function(data) {
+    function updateVisualization(numAnnotations, elementId) {
+      var result = processData(data, numAnnotations, elementId.toLowerCase());
+      points = result.points;
 
-  function updateVisualization(numAnnotations) {
-    var result = processData(data, numAnnotations);
-    points = result.points;  // Update global points variable
+      // Remove the old SVG if it exists and recreate it
+      d3.select(`#${elementId}`).select("svg").remove();
+      var { svg, xScale, yScale } = createSvgAndScales(800, 600, { top: 20, right: 20, bottom: 60, left: 70 }, points, elementId);
 
-    // Remove the old SVG if it exists and recreate it
-    d3.select("#embedding_viz").select("svg").remove();
-    var { svg, xScale, yScale } = createSvgAndScales(800, 600, { top: 20, right: 20, bottom: 60, left: 70 }, points);
+      // Clear and repopulate dropdowns
+      d3.select(`#humanml3dDropdown${elementId}`).html("");  // First dropdown
+      d3.select(`#babelDropdown${elementId}`).html("");  // Second dropdown
 
-    // Clear and repopulate dropdowns
-    d3.select("#babelDropdown").html("");
-    d3.select("#humanml3dDropdown").html("");
-    var { babelDropdown, humanml3dDropdown } = createDropdowns(result.babelTextList, result.humanml3dTextList);
+      var { babelDropdown, humanml3dDropdown } = createDropdowns(result.babelTextList, result.humanml3dTextList, elementId);
 
-    var tooltip = createTooltip();
-    drawPoints(svg, points, xScale, yScale, tooltip);
-    setupDropdownHandlers(svg, points, result.babelTextToColor, babelDropdown, humanml3dDropdown);
-  }
+      var tooltip = createTooltip();
+      drawPoints(svg, points, xScale, yScale, tooltip, elementId);
+      setupDropdownHandlers(svg, points, result.babelTextToColor, babelDropdown, humanml3dDropdown, elementId);
 
-  // Initial load with default annotations
-  updateVisualization(numAnnotations);
+      // Show all points when the "Show All Points" button is clicked
+      d3.select(`#showAllPoints${elementId}`).on("click", function() {
+        showAllPoints(svg, result.babelTextToColor, elementId);
+      });
+    }
 
-  // Load annotations based on user input
-  d3.select("#loadAnnotations").on("click", function() {
-    numAnnotations = +document.getElementById("numAnnotations").value;
-    updateVisualization(numAnnotations);
+    // Initial load with default annotations
+    updateVisualization(numAnnotations, elementId);
+
+    // Load annotations based on user input
+    d3.select(`#loadAnnotations${elementId}`).on("click", function() {
+      numAnnotations = +document.getElementById(`numAnnotations${elementId}`).value;
+      updateVisualization(numAnnotations, elementId);
+    });
   });
+}
 
-  // Show all points when the "Show All Points" button is clicked
-  d3.select("#showAllPoints").on("click", function() {
-    showAllPoints(d3.select("#embedding_viz").select("svg"), points, assignColors(Array.from(new Set(points.map(p => p.labels.flat())))));
-  });
-});
+// Initialize the visualization for both datasets
+processEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "Clip", 1000);
+processEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2m", 1000);
