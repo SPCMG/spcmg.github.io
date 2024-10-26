@@ -22,7 +22,8 @@ function processData(data, numAnnotations, elementId) {
       if (annotation.seg_id.startsWith('humanml3d_') && counter < numAnnotations) {
         humanml3dTexts.add(annotation.text);
 
-        var embeddingKey = elementId + '_embedding_2d';
+        var embeddingKey = elementId.replace("BabelGroup", "").toLowerCase() + '_embedding_2d';
+        console.log(`Embedding key: ${embeddingKey}`);
         var embedding = annotation[embeddingKey];
         var point = {
           x: embedding[0],
@@ -236,7 +237,7 @@ function drawPoints(svg, points, xScale, yScale, tooltip, elementId) {
      .append("circle")
      .attr("cx", function(d) { return xScale(d.x); })
      .attr("cy", function(d) { return yScale(d.y); })
-     .attr("r", 5)
+     .attr("r", 3)
      .attr("fill", "grey")
      .on("mouseover", function(event, d) {
         tooltip.style("display", "block");
@@ -274,7 +275,7 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
   var points;
   d3.json(jsonPath).then(function(data) {
     function updateVisualization(numAnnotations, elementId) {
-      var result = processData(data, numAnnotations, elementId.toLowerCase());
+      var result = processData(data, numAnnotations, elementId);
       points = result.points;
 
       // Remove the old SVG if it exists and recreate it
@@ -311,6 +312,7 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
 // Initialize the visualization for both datasets
 processEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "Clip", 1000);
 processEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2m", 1000);
+processEmbedding("/assets/data/clip_embeddings_of_humanml3d_babel_group.json", "ClipBabelGroup", 1000);
 
 
 //---------------------------------------------------------------------------------------------------
