@@ -23,6 +23,7 @@ function processData(data, numAnnotations, elementId) {
         humanml3dTexts.add(annotation.text);
 
         var embeddingKey = elementId.replace("BabelGroup", "").toLowerCase() + '_embedding_2d';
+        var embeddingKey = elementId.replace("La", "").toLowerCase() + '_embedding_2d';
         console.log(`Embedding key: ${embeddingKey}`);
         var embedding = annotation[embeddingKey];
         var point = {
@@ -313,6 +314,7 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
 processEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "Clip", 1000);
 processEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2m", 1000);
 processEmbedding("/assets/data/clip_embeddings_of_humanml3d_babel_group.json", "ClipBabelGroup", 1000);
+processEmbedding("/assets/data/babel_humanml3d_laclip_embedding.json", "LaClip", 1000);
 
 
 //---------------------------------------------------------------------------------------------------
