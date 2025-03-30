@@ -1,50 +1,78 @@
-// Data Processing with annotation limit
 function processData(data, numAnnotations, elementId) {
   var points = [];
   var humanml3dTexts = new Set();
   var tempBabelTexts = new Set();
-  var counter = 0; // Counter to track number of processed annotations
+  var counter = 0; // track number of processed annotations
 
   for (var seqKey in data) {
-    if (counter >= numAnnotations) break; // Stop processing after numAnnotations
+    if (counter >= numAnnotations) break; // stop if we have enough
     var sequence = data[seqKey];
     var annotations = sequence.annotations;
-    var babelTextsInSequence = [];
 
+    // 1) Gather all Babel text in this sequence
+    var babelTextsInSequence = [];
     annotations.forEach(function(annotation) {
-      if (annotation.seg_id.startsWith('babel_')) {
+      if (annotation.seg_id.startsWith("babel_")) {
         tempBabelTexts.add(annotation.text);
         babelTextsInSequence.push(annotation.text);
       }
     });
 
+    // 2) Now loop again to capture both Babel and HumanML3D embeddings
     annotations.forEach(function(annotation) {
-      if (annotation.seg_id.startsWith('humanml3d_') && counter < numAnnotations) {
-        humanml3dTexts.add(annotation.text);
+      // Make sure we don't exceed numAnnotations for the *HumanML3D* points
+      // (If you also want to limit Babel points, you can check that as well)
+      if (counter >= numAnnotations) return;
 
-        var embeddingKey = elementId.replace("BabelGroup", "").toLowerCase() + '_embedding_2d';
-        var embeddingKey = elementId.replace("La", "").toLowerCase() + '_embedding_2d';
-        console.log(`Embedding key: ${embeddingKey}`);
-        var embedding = annotation[embeddingKey];
-        var point = {
+      // Determine if it's a Babel annotation or HumanML3D annotation
+      var isBabel = annotation.seg_id.startsWith("babel_");
+      var isHumanML3D = annotation.seg_id.startsWith("humanml3d_");
+
+      // Identify correct embedding key (if you have special keys, adjust here)
+      // Assuming the field is always "text_embedding_2d"
+      var embedding = annotation.text_embedding_2d;
+
+      if (embedding) {
+        // We color this annotation by the "first" Babel text, if any
+        // (If there's more than one, you might do something else)
+        let colorLabel = (babelTextsInSequence.length > 0) 
+                         ? babelTextsInSequence[0] 
+                         : "NoBabelText";
+
+        let shape = (isBabel) ? "star" : "circle";
+
+        // Create a point object
+        let point = {
           x: embedding[0],
           y: embedding[1],
-          humanml3d_text: annotation.text,
-          labels: babelTextsInSequence.slice() // Copy of babel texts
+          text: annotation.text,
+          // Store array of *all* Babel texts in the same sequence
+          // (so we can filter if needed)
+          labels: babelTextsInSequence.slice(),
+          colorLabel: colorLabel,   // used for coloring
+          shape: shape
         };
+
         points.push(point);
-        counter++;
+
+        // If it's HumanML3D, then increment your annotation counter
+        if (isHumanML3D) {
+          humanml3dTexts.add(annotation.text);
+          counter++;
+        }
       }
     });
   }
 
+  // Convert sets to arrays
   var babelTextList = Array.from(tempBabelTexts);
   var humanml3dTextList = Array.from(humanml3dTexts);
+
+  // Create a color assignment for each unique Babel text
   var babelTextToColor = assignColors(babelTextList);
 
   return { points, babelTextList, humanml3dTextList, babelTextToColor };
 }
-
 // Generate Distinct Colors Function
 function generateDistinctColors(n) {
   var colors = [];
@@ -231,33 +259,50 @@ function setupDropdownHandlers(svg, points, babelTextToColor, babelDropdown, hum
 }
 
 // Drawing Points
-function drawPoints(svg, points, xScale, yScale, tooltip, elementId) {
-  svg.selectAll("circle")
+function drawPoints(svg, points, xScale, yScale, tooltip, elementId, babelTextToColor) {
+  // Define a base symbol generator. We'll change .type() on the fly.
+  var symbolGenerator = d3.symbol().size(80);
+
+  svg.selectAll(".pointSymbol")
      .data(points)
      .enter()
-     .append("circle")
-     .attr("cx", function(d) { return xScale(d.x); })
-     .attr("cy", function(d) { return yScale(d.y); })
-     .attr("r", 3)
-     .attr("fill", "grey")
+     .append("path")
+     .attr("class", "pointSymbol")
+     .attr("transform", function(d) {
+       return `translate(${xScale(d.x)}, ${yScale(d.y)})`;
+     })
+     .attr("d", function(d) {
+       // We switch shape depending on whether it's Babel or HumanML3D
+       if (d.shape === "star") {
+         symbolGenerator.type(d3.symbolStar);
+       } else {
+         symbolGenerator.type(d3.symbolCircle);
+       }
+       return symbolGenerator();
+     })
+     // Fill color depends on the Babel text
+     .attr("fill", function(d) {
+       // Each point has .colorLabel which is the Babel text
+       return babelTextToColor[d.colorLabel] || "gray";
+     })
      .on("mouseover", function(event, d) {
-        tooltip.style("display", "block");
-
-        var correspondingBabelTexts = Array.from(new Set(d.labels)).join(", ");
-        var content = `<strong>${elementId} embedding 2d:</strong> (${d.x.toFixed(2)}, ${d.y.toFixed(2)})<br>` +
-                      `<strong>HumanML3D Text:</strong> ${d.humanml3d_text}<br>` +
-                      `<strong>Corresponding BABEL Texts:</strong> ${correspondingBabelTexts}`;
-
-        tooltip.html(content)
-               .style("left", (event.pageX + 10) + "px")
-               .style("top", (event.pageY - 10) + "px");
+       tooltip.style("display", "block");
+       let correspondingBabelTexts = d.labels.join(", ");
+       var content = `
+         <strong>${elementId} embedding 2d:</strong> (${d.x.toFixed(2)}, ${d.y.toFixed(2)})<br>
+         <strong>Text:</strong> ${d.text}<br>
+         <strong>Babel Text(s):</strong> ${correspondingBabelTexts}
+       `;
+       tooltip.html(content)
+              .style("left", (event.pageX + 10) + "px")
+              .style("top", (event.pageY - 10) + "px");
      })
      .on("mousemove", function(event) {
-        tooltip.style("left", (event.pageX + 10) + "px")
-               .style("top", (event.pageY - 10) + "px");
+       tooltip.style("left", (event.pageX + 10) + "px")
+              .style("top", (event.pageY - 10) + "px");
      })
      .on("mouseout", function() {
-        tooltip.style("display", "none");
+       tooltip.style("display", "none");
      });
 }
 
@@ -290,7 +335,7 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
       var { babelDropdown, humanml3dDropdown } = createDropdowns(result.babelTextList, result.humanml3dTextList, elementId);
 
       var tooltip = createTooltip();
-      drawPoints(svg, points, xScale, yScale, tooltip, elementId);
+      drawPoints(svg, points, xScale, yScale, tooltip, elementId, result.babelTextToColor);
       setupDropdownHandlers(svg, points, result.babelTextToColor, babelDropdown, humanml3dDropdown, elementId);
 
       // Show all points when the "Show All Points" button is clicked
@@ -311,8 +356,9 @@ function processEmbedding(jsonPath, elementId, numAnnotations = 1000) {
 }
 
 // Initialize the visualization for both datasets
-processEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "Clip", 1000);
-processEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2m", 1000);
+processEmbedding("/assets/data/babel_humanml3d_with_CLIP_embeddings.json", "CLIP", 1000);
+processEmbedding("/assets/data/babel_humanml3d_with_LaCLIP_embeddings.json", "LaCLIP", 1000);
+processEmbedding("/assets/data/babel_humanml3d_with_DistilBERT_embeddings.json", "DistilBERT", 1000);
 processEmbedding("/assets/data/clip_embeddings_of_humanml3d_babel_group.json", "ClipBabelGroup", 1000);
 processEmbedding("/assets/data/babel_humanml3d_laclip_embedding.json", "LaClip", 1000);
 
@@ -457,8 +503,8 @@ function processAnnotationsEmbedding(jsonPath, elementId, numAnnotations = 100) 
 }
 
 // Call the function for each dataset
-processAnnotationsEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "ClipGroup", 100);
-processAnnotationsEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2mGroup", 100);
+// processAnnotationsEmbedding("/assets/data/clip_embeddings_of_humanml3d.json", "ClipGroup", 100);
+// processAnnotationsEmbedding("/assets/data/t2m_embeddings_of_humanml3d.json", "T2mGroup", 100);
 
 
 //---------------------------------------------------------------------------------------------------

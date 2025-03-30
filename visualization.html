@@ -5,39 +5,57 @@ title: Data Visualization
 
 <h1>Embeddings Visualization</h1>
 
-<!-- Section for the first dataset -->
+<!-- Section for CLIP embeddings -->
 <h2>CLIP Embeddings of HumanML3D</h2>
 <div>
-  <label for="numAnnotationsClip">Enter the number of annotations to load:</label>
-  <input type="number" id="numAnnotationsClip" name="numAnnotationsClip" min="1" value="1000">
-  <button id="loadAnnotationsClip">Load Partial Data</button>
+  <label for="numAnnotationsCLIP">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsCLIP" name="numAnnotationsCLIP" min="1" value="1000">
+  <button id="loadAnnotationsCLIP">Load Partial Data</button>
 </div>
 
-<div id="babelDropdownClip"></div>
-<div id="humanml3dTextsClip"></div>
-<div id="humanml3dDropdownClip"></div>
-<div id="babelTextsClip"></div>
+<div id="babelDropdownCLIP"></div>
+<div id="humanml3dTextsCLIP"></div>
+<div id="humanml3dDropdownCLIP"></div>
+<div id="babelTextsCLIP"></div>
 
-<button id="showAllPointsClip">Show All Points</button>
-<div id="Clip"></div>
+<button id="showAllPointsCLIP">Show All Points</button>
+<div id="CLIP"></div>
 
 <hr>
 
-<!-- Section for the second dataset -->
-<h2>T2M Embeddings of HumanML3D</h2>
+<!-- Section for LaCLIP embeddings -->
+<h2>LaCLIP Embeddings of HumanML3D</h2>
 <div>
-  <label for="numAnnotationsT2m">Enter the number of annotations to load:</label>
-  <input type="number" id="numAnnotationsT2m" name="numAnnotationsT2m" min="1" value="1000">
-  <button id="loadAnnotationsT2m">Load Partial Data</button>
+  <label for="numAnnotationsLaCLIP">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsLaCLIP" name="numAnnotationsLaCLIP" min="1" value="1000">
+  <button id="loadAnnotationsLaCLIP">Load Partial Data</button>
 </div>
 
-<div id="babelDropdownT2m"></div>
-<div id="humanml3dTextsT2m"></div>
-<div id="humanml3dDropdownT2m"></div>
-<div id="babelTextsT2m"></div>
+<div id="babelDropdownLaCLIP"></div>
+<div id="humanml3dTextsLaCLIP"></div>
+<div id="humanml3dDropdownLaCLIP"></div>
+<div id="babelTextsLaCLIP"></div>
 
-<button id="showAllPointsT2m">Show All Points</button>
-<div id="T2m"></div>
+<button id="showAllPointsLaCLIP">Show All Points</button>
+<div id="LaCLIP"></div>
+
+<hr>
+
+<!-- Section for DistilBERT embeddings -->
+<h2>DistilBERT Embeddings of HumanML3D</h2>
+<div>
+  <label for="numAnnotationsDistilBERT">Enter the number of annotations to load:</label>
+  <input type="number" id="numAnnotationsDistilBERT" name="numAnnotationsDistilBERT" min="1" value="1000">
+  <button id="loadAnnotationsDistilBERT">Load Partial Data</button>
+</div>
+
+<div id="babelDropdownDistilBERT"></div>
+<div id="humanml3dTextsDistilBERT"></div>
+<div id="humanml3dDropdownDistilBERT"></div>
+<div id="babelTextsDistilBERT"></div>
+
+<button id="showAllPointsDistilBERT">Show All Points</button>
+<div id="DistilBERT"></div>
 
 <hr>
 
@@ -83,7 +101,7 @@ title: Data Visualization
 
 <div id="T2mSwapped"></div>
 
-<hr>
+<!-- <hr>
 
 <h2>CLIP Embeddings of HumanML3D (coarse BABEL Group)</h2>
 <div>
@@ -117,7 +135,7 @@ title: Data Visualization
 <button id="showAllPointsLaClip">Show All Points</button>
 <div id="LaClip"></div>
 
-<hr>
+<hr> -->
 
 <!-- Include D3.js -->
 <script src="https://d3js.org/d3.v6.min.js"></script>
